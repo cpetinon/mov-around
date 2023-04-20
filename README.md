@@ -26,7 +26,7 @@ L'utilisateur souhaitant faire tourner l'appli sur sa machine doit disposer sur 
 - Le [logiciel R](https://cran.r-project.org/bin/windows/base/)
 - L'IDE [RStudio](https://posit.co/download/rstudio-desktop/), en version gratuite
 - Le [logiciel de gestion de version Git](https://git-scm.com/downloads)
-- Le [logiciel RTools](https://cran.r-project.org/bin/windows/Rtools/) en version compatible avec la version de R
+- Si la machine tourne sous Windows, le [logiciel RTools](https://cran.r-project.org/bin/windows/Rtools/) en version compatible avec la version de R
 
 Il est également nécessaire d'installer des *packages* R :
 
