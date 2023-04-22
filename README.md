@@ -38,8 +38,18 @@ Il est également nécessaire d'installer des *packages* R :
 - CPAT, synchrony, forecast, zoo : pour les stats
 - readr : pour exporter les tableaux de données en .csv compatible Excel
 
+On pourra lancer dans le terminal R de RStudio la commande :
+
+```R
+install.packages(c("shiny", "shinythemes", "httr", "jsonlite", "tibble", "dplyr", "lubridate", "ggplot2", "plotly", "cowplot", "CPAT", "synchrony", "forecast", "zoo", "readr"))
+```
+
 Ensuite, il faut télécharger le projet (fork ou clone) pour en disposer en local, puis le démarrer dans RStudio avec le fichier 
-`Projet.Rproj ` qui est à la racine du projet. Si l'on ouvre dans RStudio le fichier `server.R` ou bien `ui.R`, l'IDE propose un bouton `Run App`. Il suffit de cliquer dessus !
+`Projet.Rproj ` qui est à la racine du projet. Si l'on ouvre dans RStudio le fichier `server.R` ou bien `ui.R`, l'IDE propose un bouton `Run App`. Il suffit de cliquer dessus ou d'exécuter la commande
+
+```R
+shiny::runApp()
+```
 
 ## Déployer l'appli
 
