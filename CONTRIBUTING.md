@@ -129,5 +129,5 @@ Please read the appropriate chapters in the [README.md](README.md) file.
 
 ### License
 
-By contributing to Giterm, you agree that your contributions will be
+By contributing to Mov'Around, you agree that your contributions will be
 licensed under the terms given in the [LICENSE](LICENSE) file.
