@@ -110,7 +110,7 @@ packaging: create a dedicated R package for dataFetcher
 
 ## Coding conventions
 
-New code should follow the tidyverse style guide. You can use the styler package to apply these styles, but please don’t restyle code that has nothing to do with your PR.
+New code should follow the `tidyverse` style guide. You can use the styler package to apply these styles, but please don’t restyle code that has nothing to do with your PR.
 
 We use roxygen2, with Markdown syntax, for documentation.
 
