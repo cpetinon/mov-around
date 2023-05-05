@@ -117,6 +117,17 @@ We use roxygen2, with Markdown syntax, for documentation.
 We use testthat for unit tests. Contributions with test cases included are easier to accept.
 
 
+## Naming conventions
+
+- functions' names start with verbs
+- all names are in English
+- all names are meaningful, hence avoid `variable1`, `box1`, etc.
+- no uppercase
+- the word separator in names is the underscore "_"
+- a glossary accurately defines the objects (eg clarify what is a segment vs. a sensor name vs. a sensor ID)
+
+
+
 ## Dev env
 
 Please read the appropriate chapters in the [README.md](README.md) file to set up an appropriate development environment.
