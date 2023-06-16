@@ -244,35 +244,6 @@ filter_public_holidays <- function(data, JF){
 #'
 #' @return 
 #' @export
-# filtrage <- function(data,
-#                      capteur   = data$segment_id[1],
-#                      sens      = " ",
-#                      mobilite  = c("car","heavy","pedestrian","bike"),
-#                      daterange = c('2021-01-01', as.character(Sys.Date())),
-#                      vacance   = "Oui",
-#                      JF        = "Oui",
-#                      SM        = as.character(1:7)
-# ){
-#   # c("Toute"=" ","B vers A"="_rgt","A vers B" ="_lft")
-# # verifier si ca fait les bons filtrages
-#   
-#   # CAPTEUR
-#   filtre <- data[ data$segment_id==capteur, ]
-#   
-#   # SENS
-#   S <- trimws(paste0(mobilite,sens))
-#   
-#   # MOBILITE
-#   filtre$total <- apply(filtre[,S], MARGIN = 1 ,FUN = sum)
-#   
-#   filtre <- filtre %>% # RE CREATION
-#     filter(wday(date) %in% SM) %>% # JOUR DE LA SEMAINE
-#     filter_date(daterange) %>%
-#     filter_vacation(vacance) %>% # VACANCES
-#     filter_public_holidays(JF) # JOURS FERIES
-#   return(filtre)
-# }
-
 filtrage <- function(data,
                      sensor    = data$segment_id[1],
                      direction = " ",
