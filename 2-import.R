@@ -23,7 +23,7 @@ retrieve_sensor <- function(nom,date1,date2){
   result <- data.frame() 
   date2 <- date2 + days(1) # so that date2 is included
   idCapteur <- listeSegments[which(listeNom==nom)] # retrieve the identifier associated to the name of the sensor
-  dates <- seq_by_3_month(date1,date2) # for the iteration of the retrieving, because when we call the API, the period can not exceed 3 month for each call
+  dates <- seq_by_3_month(date1,date2) # for the iteration of the retrieving, because when we call the API, the period can not exceed 3 months for each call
   
   # calling of the API
   resTraffic_list <- pmap(list(dates$debut, dates$fin), ~ {
