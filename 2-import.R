@@ -318,4 +318,3 @@ server_2 <- function(input, output, session){
   # Return value of the module
   return(data)
 }
-                                           
