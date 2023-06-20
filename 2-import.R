@@ -14,7 +14,7 @@
 #' @param date1 Date. Start date "aaaa-mm-jj"
 #' @param date2 Date. End date "aaaa-mm-jj"
 #'
-#' @return Data from the API, from date1 to date2. Date1 and date2 are included.
+#' @return Data from the API, from date1 to date2. date1 and date2 are included.
 #' @export
 #' @examples
 #' retrieve_sensor('Burel', ymd('2021-05-21'),ymd('2021-05-30'))
