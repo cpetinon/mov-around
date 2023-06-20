@@ -52,7 +52,7 @@ retrieve_sensor <- function(nom,date1,date2){
     # we select the data that we don't consider null (arbitrary choice)
     result <- result %>% filter(uptime > 0.5,
                                 heavy_lft + car_lft + pedestrian_lft + bike_lft +
-                                  heavy_rgt + car_rgt + pedestrian_rgt + bike_rgt >0
+                                heavy_rgt + car_rgt + pedestrian_rgt + bike_rgt >0
     )
   }
   return(result)
