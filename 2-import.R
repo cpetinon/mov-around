@@ -272,7 +272,7 @@ server_2 <- function(input, output, session){
     )
   }
   
-  # Update of the database reactif after triger of the update button
+  # Update of the database reactif after trigger of the update button
   observeEvent(input$update,{
     date <- ymd(update$date)
     
