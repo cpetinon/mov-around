@@ -8,7 +8,7 @@
 ########################
 
 
-#'  Retrieve the data associated to a sensor from the API Telraam
+#'  Retrieve the data associated to a sensor from the Telraam API
 #'
 #' @param nom Character. Name of the sensor, comes from the vector listeNom
 #' @param date1 Date. Start date "aaaa-mm-jj"
