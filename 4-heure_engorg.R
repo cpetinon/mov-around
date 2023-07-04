@@ -1,82 +1,48 @@
-##############################################
-#               Functions                    #
-##############################################
-
-# Définition du Graphique (character si vide)
-
-
-plot_eng_react_fct <- function(data, capteur4, daterange5, Vacance4, JF4, SM4) {
-
-  if (is.null(data)) {
+plot_hour_threshold <- function(...) {
+  data <- do.call(filtering,list(...))
+  
+  if (is_empty(data)) {
     return(NULL)
   }
+
+  data <- data %>%
+          group_by(hour = hour(date)) %>% 
+          summarise(v85 = mean(v85, na.rm = TRUE),
+                    B_to_A = mean(car_rgt + heavy_rgt, na.rm = TRUE),
+                    A_to_B = mean(car_lft + heavy_lft, na.rm = TRUE))
+          
+  # these variables are used to center and reduce the second scale (right axe)
+  mean_voiture <- mean(c(data$B_to_A,data$B_to_A))
+  sd_voiture <- sd(c(data$B_to_A,data$B_to_A))
+  mean_speed <- mean(data$v85)
+  sd_speed <- sd(data$v85)
   
-  # Filter data based on selected sensor using the filtrage function
-  donnees_filtrees <- filtrage(data, sensor = capteur4, direction = " ", mobility = c("car", "heavy", "pedestrian", "bike"), daterange = daterange5, vacation = Vacance4, p_holiday= JF4, weekdays= SM4)
+  data <- data %>% mutate(v85 = ((v85-mean_speed)/sd_speed)*sd_voiture+mean_voiture) %>%
+                   pivot_longer( cols=c(v85,B_to_A,A_to_B),names_to="Legend",values_to="valeur")
   
-  if (nrow(donnees_filtrees) == 0) {
-    return("Pas de données pour la sélection de la période")
-  }
-  
-  # Calculate mean by hour for vitesse, trafic_rgt, and trafic_lft
-  vitesse <- donnees_filtrees %>%
-    group_by(hour = hour(date)) %>% 
-    summarise(Vitesse = mean(v85, na.rm = TRUE))
-  
-  trafic_rgt <- donnees_filtrees %>%
-    group_by(hour = hour(date)) %>%
-    summarise(Voiture_BversA = mean(car_rgt + heavy_rgt, na.rm = TRUE))
-  
-  trafic_lft <- donnees_filtrees %>%
-    group_by(hour = hour(date)) %>%
-    summarise(Voiture_AversB = mean(car_lft + heavy_lft, na.rm = TRUE))
-  
-  # Merge data frames
-  trafic_horaire <- full_join(trafic_lft, trafic_rgt, by = "hour")
-  trafic_horaire <- full_join(trafic_horaire, vitesse, by = "hour")
-  
-  if (nrow(trafic_horaire) == 0) {
-    return("Pas de données pour la sélection de la période")
-  }
-  
-  # Create the plot
-  fig <- plot_ly(trafic_horaire, x = ~hour)
-  fig <- fig %>% add_trace(y = ~Voiture_BversA, mode = "lines+markers", name = "B vers A", 
-                           line = list(color = "blue", dash = "dot"),
-                           marker = list(color = "blue"))
-  fig <- fig %>% add_trace(y = ~Voiture_AversB, mode = "lines+markers", name = "A vers B", 
-                           line = list(color = "blue", dash = "dash"),
-                           marker = list(color = "blue"))
-  ay <- list(
-    tickfont = list(color = "red"),
-    overlaying = "y",
-    side = "right",
-    title = "Vitesse v85 moyenne (km/h)"
-  )
-  fig <- fig %>% add_trace(y = ~Vitesse, yaxis = "y2", mode = "lines+markers", name = "Vitesse v85 moyenne", 
-                           line = list(color = "red"),
-                           marker = list(color = "red"))
-  fig <- fig %>% layout(
-    title = "", yaxis2 = ay,
-    xaxis = list(title = "Heure"),
-    yaxis = list(title = "Nombre de véhicules moyen")
-  ) %>%
-    layout(plot_bgcolor = '#e5ecf6',
-           xaxis = list(
-             zerolinecolor = '#ffff',
-             zerolinewidth = 2,
-             gridcolor = 'ffff',
-             dtick = 1
-           ),
-           yaxis = list(
-             tickfont = list(color = "blue"),
-             zerolinecolor = '#ffff',
-             zerolinewidth = 2,
-             gridcolor = 'ffff'
-           )
-    )
-  
-  list(fig = fig, Donnee = trafic_horaire)
+  graph <- ggplot(data, aes(x = hour, y = valeur, group=Legend, shape=Legend, colour=Legend)) +
+           geom_line(aes(linetype=Legend),size = 1) +
+           geom_point(size = 3)+
+           scale_color_manual(values = c("#006bb6", "#006bb6", "#ff5900"))+ # legend
+           scale_linetype_manual(values = c("dotted", "solid","solid")) + # legend
+           ylab('Nombre de véhicules moyen')+
+           scale_y_continuous(sec.axis = sec_axis(~((.-mean_voiture)/sd_voiture)*sd_speed+mean_speed, # tracing the second axis
+                                                  name = "Vitesse v85 moyenne (km/h)")) +
+           scale_x_continuous(breaks = min(data$hour):max(data$hour)) +
+           theme_bw() +
+           theme(legend.position = "bottom", legend.box = "horizontal", # the whole code in this theme() function is about color
+                 axis.ticks.y.left = element_line(color = "#006bb6"), # ticks (left axis) 
+                 axis.text.y.left = element_text(color = "#006bb6"), # number associated to a tick (left axis)
+                 axis.title.y.left = element_text(color = "#006bb6"), # title of an axis (left axis)
+                 axis.title.y.right = element_text(color = "#ff5900"), # ticks (right axis)
+                 axis.text.y.right = element_text(color = "#ff5900") , # number associated to a tick (right axis)
+                 axis.ticks.y.right = element_line(color = "#ff5900"), # title of an axis (right axis)
+                 panel.background = element_rect(fill = "#F5F5F5"), # background
+                 panel.grid = element_line(color = "#E3E3E3"), # grid
+                 panel.border = element_rect(color = "#E3E3E3", size = 2)) #border of the chart
+
+  return(list(graph=graph,data=data))
+
 }
 
 
@@ -91,69 +57,74 @@ ui_4 <- function(id){
       selectInput(ns("sensor"),
                   label = "Choix du capteur",
                   choices = NULL),
-      
-      dateRangeInput(ns("daterange5"), "Période",
+      dateRangeInput(ns("date_range"), "Période",
                      start  = "2021-01-01",
                      end    = Sys.Date()-days(1),
                      min    = "2021-01-01",
                      max    = Sys.Date()-days(1)),
-      
-      radioButtons(inputId = ns("Vacance4"), label = "Vacances comprises :",
+      radioButtons(inputId = ns("vacation"), label = "Vacances comprises :",
                    choices = c("Oui","Non","Seulement les vacances"),selected = "Non"),
-      radioButtons(inputId = ns("JF4"), label = "Jours fériés compris :",
+      radioButtons(inputId = ns("p_h"), label = "Jours fériés compris :",
                    choices = c("Oui","Non","Seulement les jours fériés"),selected = "Non"),
       checkboxGroupInput(
-        ns("SM4"),
+        ns("wkd"),
         "Choix des jours",
         selected = 1:5,
         choiceNames = c("lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"),
         choiceValues = 1:7,
         inline = TRUE
-      ),
-      actionButton(ns("mise_a_j"), "Mettre à jour")
+      )
     )),
-    uiOutput(ns("resultat"))
+    
+    h3("Heure d'engorgement :"),
+    p("Cet onglet permet de visualiser, pour un capteur, la circulation dans chaque direction
+                 (voitures et poids lourds) et la vitesse V85 (vitesse telle que 85 % des usagers roulent 
+                 plus lentement), en fonction des heures de la journée. On peut alors observer à quelle heure aparaissent les ralentissements."),
+    br(),
+    uiOutput(ns("display"))
   )
 }
 
 server_4 <- function(input, output, session, data){
   ns <- session$ns
-  
-  # pour mettre a jour le choix des capteurs selon liste_capteur
-  observe({
-    updateSelectInput(session, "sensor", choices = data$sensors)
+
+  observe({  # update sensor selection according to import tab
+    if (!is.null(data$sensors)){
+      names_selected_sensors <- setNames(data$sensors,sensor_names[sensor_ids%in%data$sensors])
+      updateSelectInput(session, "sensor", choices = names_selected_sensors)
+    }
   })
   
-  plot_heure_eng <- reactiveVal()
-  
-  observeEvent(input$mise_a_j,{
-    plot_heure_eng(plot_eng_react_fct(data$data, input$sensor, input$daterange5, input$Vacance4, input$JF4, input$SM4))
+  #--- function application ---
+  result <- reactive({
+    plot_hour_threshold(data = data$data, sensor = input$sensor, date_range = input$date_range, vac = input$vacation, p_h = input$p_h, wkd = input$wkd)
   })
   
-  output$graph <- renderPlotly({plot_heure_eng()$fig})
-  
-  output$resultat <- renderUI(
-    if (is.null(plot_heure_eng())){return("Import necessaire")} 
-    # else if(mode(plot_heure_eng()$fig)=="character"){return()} 
-    else {
+  #--- output definition ---
+  output$plot_hour_threshold <- renderPlot({
+    result()$graph
+  })
+
+  output$display <- renderUI(
+    if (is.null(data$sensors)){
+      p(class="text-center", "Pour afficher le graphique, veuillez sélectionner des capteurs dans l'onglet import.")
+    }
+    else if (is.null(input$wkd)){
+     p("Le graphique est vide pour les critères sélectionnés")
+    } else {
       column(width = 9,
              h3("Quelle est l'heure d'engorgement ?"),
-             plotlyOutput(ns("graph")),
+             plotOutput(ns("plot_hour_threshold")),
              p("La vitesse V85 est la vitesse telle que 85% des usagers roulent plus lentement que celle ci."),
              downloadButton(ns("downloadHeure"), "Import des données")
       )
     }
   )
-  
-  # Affiche le bouton de téléchargement des données si tout va bien
-  output$downloadHeure <- renderUI(
-    downloadHandler(
+
+  output$downloadHeure <- downloadHandler(
       filename = "Heure_engorgement.csv", # Nom du fichier importé
       content = function(file) {
-        write_excel_csv2(plot_heure_eng()$Donnee, file)
+        write_excel_csv2(result()$data, file)
       }
     )
-  )
-  
 }
-

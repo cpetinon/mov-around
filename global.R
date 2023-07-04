@@ -1,132 +1,101 @@
-
-
-############
+########
 # Package import
-############
+########
+library(shiny) # for the app
+library(tidyverse) # tibble import
+library(dplyr) # tibble manipulation
+library(ggplot2) # chart
+library(httr) # for the import
+library(jsonlite) # for the import
+library(lubridate) # date format management
+library(cowplot) # graphic overlay
+library(CPAT) # Darling Erdos test
+library(synchrony) # peak function
+library(forecast) # moving average function
+library(zoo) # na.trim function
+library(readr) # csv manipulation
+library(mgcv) # gam function (lisser les courbes)
 
-library(shiny) # Pour l'appli
-library(tidyverse) # Import de tibble
-library(dplyr) # Manipulation de tibble
-library(ggplot2) # Graphique
-library(shinythemes) # Pour le style "journal"
-library(httr) # Pour l'import
-library(jsonlite) # Pour l'import
-library(lubridate) # Gestion du format de date
-library(cowplot) # Superposition de graphique
-library(CPAT) # test de Darling Erdos
-library(synchrony) # fonction peaks (synchronicite des pics)
-library(forecast) # fonction ma : moving average
-library(zoo) # fonction na.trim
-library(plotly) # Pour le graphique des heures d'engorgement
-library(readr) # Pour l'export en csv compatible excel
-
-############
+########
 # File import
-############
+########
 source('1-accueil.R')
 source('2-import.R')
 source('3-comparaison_periode.R')
 source('4-heure_engorg.R')
 source('5-seuil_engorg.R')
 source('6-comparaison.R')
-source('7-methode.R')
+
+
 
 ########
-# Parameters of the package
+# Utilisation of the lubridate package
 ########
 
-options(lubridate.week.start = 1) # Pour que la semaine commence jour 1
+options(lubridate.week.start = 1)  # To start the week on day 1 (package parameter)
+today <- today()
 
-
-#######################################################################################
-
+########
 # Sensor list
-
-#######################################################################################
+########
 
 # /!\ The order of the following lists is important, as it links sensor ids to their names /!\
 
-listeSegments <- c(9000002156, 9000001906, 9000001618,9000003090,9000002453,9000001844,
+sensor_ids <- c(9000002156, 9000001906, 9000001618,9000003090,9000002453,9000001844,
                    9000001877,9000002666,9000002181,9000002707,9000003703,
                    9000003746,9000003775,9000003736)
-listeNom <- c("Burel","Leclerc","ParisMarche","rueVignes","ParisArcEnCiel","RteVitre",
-              "RueGdDomaine","StDidierNord","rueVallee","StDidierSud","RuePrieure",
-              "RueCottage","RueVeronniere","RueDesEcoles")
-listeNombis <- c("Burel-01","Leclerc-02","ParisMarche-03","rueVignes-04","ParisArcEnCiel-05","RteVitre-06",
+
+sensor_names <- c("Burel-01","Leclerc-02","ParisMarche-03","rueVignes-04","ParisArcEnCiel-05","RteVitre-06",
                  "RueGdDomaine-07","StDidierNord-08","rueVallee-09","StDidierSud-10","RuePrieure-11",
                  "RueCottage-12","RueVeronniere-13","RueDesEcoles-14")
 
 
-#######################################################################################
+########
+# API key (see the Telraam site to generate one)
+########
 
-# Data import (constant)
-
-#######################################################################################
-
-
-##########################################################
-### clef pour l'API Telraam (à generer su telraam.net) ###
-##########################################################
-
-# Read API key for updates
 if (file.exists('clef.txt')){
+  key1 <- c(
+    'X-Api-Key' = readLines("clef.txt")
+  )
   key <- readLines("clef.txt")
 } else {
   key <- NULL
 }
 
-# Retrieve of today
-today <- today()
 
-#################################################
-### Import public holiday and vacation dates ###
-#################################################
+########
+### Import public holiday and vacation dates (from a government API,this part must be re-adapted if there is a problem/change in the gouv rating)
+########
 
-# From a government API (this part must be re-adapted if there is a problem/change in the gouv rating)
-
-### Public holiday ###
-
-# (imported over 25 years: 285 days)
-# Recovering days in "YYYY-MM-DD" format
+### Public holiday (imported over 25 years: 285 days) ###
 
 public_holidays <- GET("https://calendrier.api.gouv.fr/jours-feries/metropole.json") %>% 
-  .$content %>% 
-  rawToChar() %>% 
-  fromJSON() %>% 
-  names() %>% 
-  ymd()
+                    .$content %>% 
+                    rawToChar() %>% 
+                    fromJSON() %>% 
+                    names() %>% 
+                    ymd()
 
-### Import vacation date ###
+### Import vacation date (specific to Chateaubourg, see location (academy))
+vacations <- GET(url =  "https://data.education.gouv.fr/api/v2/catalog/datasets/fr-en-calendrier-scolaire/exports/json",
+                 query = list(refine = "location:Rennes",
+                             exclude = "population:Enseignants")) %>%
+                 .$content %>%
+                 rawToChar() %>%
+                 fromJSON() %>%
+                 select(description,
+                        start_date,
+                        end_date) %>%
+                 mutate(
+                   start_date = ymd_hms(start_date),
+                   end_date = ymd_hms(end_date))
 
-#Import sur les donnees en lignes: a la creation entre 2017 et 2023 (35 vacances)
-#recuperation des donnees specification de l'academie dans location (a changer si changement d'academie).
 
-url <- "https://data.education.gouv.fr/api/v2/catalog/datasets/fr-en-calendrier-scolaire/exports/json"
-
-vacations <- GET(
-  url = url,
-  query = list(refine = "location:Rennes",
-               exclude = "population:Enseignants")
-) %>%
-  .$content %>%
-  rawToChar() %>%
-  fromJSON() %>%
-  select(description,
-         start_date,
-         end_date) %>%
-  mutate(
-    start_date = ymd_hms(start_date),
-    end_date = ymd_hms(end_date)
-  )
-# Remarque: les dates des vacance finissent vers 22h ou 23h -> cela ne changent rien au vu des heures
-# de fonctionnement des capteurs Telraam (ne fonctionne que s'il fait jour)
-
-#######################################################################################
-
-# Definition of global functions
-
-#######################################################################################
-
+########
+### Functions
+########
+# These functions are used throughout the whole application, that is why they are not in the others modules
 
 ########################
 # Date selection function
@@ -136,14 +105,14 @@ vacations <- GET(
 #' Filtering dataframe rows by date
 #'
 #' @param data a dataframe with a "date" column (lubridate format)
-#' @param daterange Date or character. c("aaaa-mm-jj","aaaa-mm-jj")
+#' @param date_range Date or character. c("aaaa-mm-jj","aaaa-mm-jj")
 #'
 #' @return 
 #' @export
-filter_date <- function(data, daterange){
-  # if dates are exchanged
-  date1 <- ymd(daterange[1])
-  date2 <- ymd(daterange[2])
+filter_date <- function(data, date_range){
+  # in case dates are exchanged
+  date1 <- ymd(date_range[1])
+  date2 <- ymd(date_range[2])
   if (date1<date2){
     start <- date1
     end <- date2
@@ -219,11 +188,11 @@ filter_public_holidays <- function(data, JF){
   
   if(JF=="Non"){
     return(data[!matching_dates,])
-  }
-  if(JF=="Seulement les jours fériés"){
+  } else if(JF=="Seulement les jours fériés"){
     return(data[matching_dates,])
   }
 }
+
 
 ########################
 # Filter function
@@ -234,42 +203,36 @@ filter_public_holidays <- function(data, JF){
 #' Not all criteria need to be filled in. Unfilled criteria are set by default so that no filtering is performed.
 #'
 #' @param data Raw data. See the "importation" function in the '2-import.R' file
-#' @param capteur character. Name of desired sensor
-#' @param sens character. Direction of the street: " " or "_lft" or "_rgt"
-#' @param mobilite character. Type of mobility: c("car","heavy","pedestrian","bike")
-#' @param daterange character. Date or character. c("aaaa-mm-jj","aaaa-mm-jj")
-#' @param vacance character. With, without, or only with vacation: "Oui" or "Non" or "Seulement les vacances"
-#' @param JF character. With, without, or only with public holiday: "Oui" or "Non" or "Seulement les jours fériés"
-#' @param SM character. Selected days of the week: c("1","2","3","4","5","6","7") here all days are selected
+#' @param sensor character. Name of desired sensor
+#' @param direction character. Direction of the street: " " or "_lft" or "_rgt"
+#' @param mobility character. Type of mobility: c("car","heavy","pedestrian","bike")
+#' @param date_range character. Date or character. c("aaaa-mm-jj","aaaa-mm-jj")
+#' @param vac character. With, without, or only with vacation: "Oui" or "Non" or "Seulement les vacances"
+#' @param p_h character. With, without, or only with public holiday: "Oui" or "Non" or "Seulement les jours fériés"
+#' @param wkd character. Selected days of the week: c("1","2","3","4","5","6","7") here all days are selected
 #'
 #' @return 
 #' @export
-filtrage <- function(data,
-                     sensor    = data$segment_id[1],
-                     direction = " ",
-                     mobility  = c("car","heavy","pedestrian","bike"),
-                     daterange = c('2021-01-01', as.character(Sys.Date())),
-                     vacation  = "Oui",
-                     p_holiday = "Oui",
-                     weekdays  = as.character(1:7)
+filtering <- function(data = NULL, sensor    = NULL, direction = ' ', mobility  = c("car","heavy","pedestrian","bike"),
+                     date_range = NULL, vac  = NULL, p_h = NULL, wkd  = NULL
 ){
-  # c("Toute"=" ","B vers A"="_rgt","A vers B" ="_lft")
-  # to verify one last time
-  
-  # sensor
-  filtre <- data[ data$segment_id==sensor, ]
-  
-  # direction and mobility
+  if (is_empty(data)|is.null(data)|is.null(sensor)|is.null(mobility)|is.null(direction)){
+    return(tibble())
+  }
+  filtre <- data[ data$segment_id == sensor, ]
   S <- trimws(paste0(mobility,direction))
   filtre$total <- apply(filtre[,S], MARGIN = 1 ,FUN = sum)
-  
-  filtre <- filtre %>%
-    filter(wday(date) %in% weekdays) %>% # choice of the weekdays
-    filter_date(daterange) %>% # date
-    filter_vacation(vacation) %>% # vacation
-    filter_public_holidays(p_holiday) # public holidays
+  if (!is.null(wkd)){
+    filtre <- filtre %>% filter(wday(date) %in% wkd)
+  }
+  if (!is.null(date_range)){
+    filtre <- filtre %>% filter_date(date_range)
+  }
+  if (!is.null(vac)){
+    filtre <- filtre %>% filter_vacation(vac)
+  }
+  if (!is.null(p_h)){
+    filtre <- filtre %>% filter_public_holidays(p_h)
+  }
   return(filtre)
 }
-
-
-
