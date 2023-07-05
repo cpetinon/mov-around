@@ -3,8 +3,8 @@
 At this stage the solution needs a complete refactoring, so any help will be welcome :)
 Here is a TODO shortlist:
 
-- [ ] extraction of features into dedicated R packages/repositories
-- [ ] separation of concerns between data fetching, presentation and manipulation by the user according to an MVC scheme
+- [x] extraction of features into dedicated R packages/repositories
+- [x] separation of concerns between data fetching, presentation and manipulation by the user according to an MVC scheme
 - [ ] setup of Github Actions to get CI/CD
 
 
