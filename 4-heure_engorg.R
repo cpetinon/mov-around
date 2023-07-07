@@ -75,8 +75,7 @@ ui_4 <- function(id){
         inline = TRUE
       )
     )),
-    
-    h3("Heure d'engorgement :"),
+    h3("Heure d'engorgement"),
     p("Cet onglet permet de visualiser, pour un capteur, la circulation dans chaque direction
                  (voitures et poids lourds) et la vitesse V85 (vitesse telle que 85 % des usagers roulent 
                  plus lentement), en fonction des heures de la journée. On peut alors observer à quelle heure aparaissent les ralentissements."),
@@ -90,8 +89,7 @@ server_4 <- function(input, output, session, data){
 
   observe({  # update sensor selection according to import tab
     if (!is.null(data$sensors)){
-      names_selected_sensors <- setNames(data$sensors,sensor_names[sensor_ids%in%data$sensors])
-      updateSelectInput(session, "sensor", choices = names_selected_sensors)
+      updateSelectInput(session, "sensor", choices = data$sensors)
     }
   })
   

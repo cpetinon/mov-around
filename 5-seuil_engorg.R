@@ -142,7 +142,7 @@ ui_5 <- function(id){
                    inline = TRUE),
       uiOutput(ns("threshold"))
     )),
-    h3("Seuil d’engorgement :"),
+    h3("Seuil d’engorgement"),
     p("Cet onglet permet de visualiser le pourcentage d’usagers (voitures et poids lourds) arrivant à dépasser 10km/h, 20km/h, 30km/h et 40km/h en fonction du nombre de véhicules sur la route. L’objectif est de pouvoir chercher un changement brusque dans ces courbes pour déterminer un seuil d’apparition des ralentissements. Le programme propose un seuil calculé automatiquement. Ce seuil n’est pas forcément précis, vous pouvez décider d’afficher un seuil manuel."),
     actionButton("toggleMethodButton_5", "Détails statistiques", style = "display: block; margin: 0 auto;"),
     div(id = "methodText_5", style = "display: none;",
@@ -167,8 +167,7 @@ server_5 <- function(input, output, session, data) {
 
   observe({  # update sensor selection according to import tab
     if (!is.null(data$sensors)){
-      names_selected_sensors <- setNames(data$sensors,sensor_names[sensor_ids%in%data$sensors])
-      updateSelectInput(session, "sensor", choices = names_selected_sensors)
+      updateSelectInput(session, "sensor", choices = data$sensors)
     }
   })
 
