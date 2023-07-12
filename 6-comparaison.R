@@ -139,8 +139,8 @@ ui_6 <- function(id){
     )),
     
           
-    h3(" Comparaison de période :"),
-    p("Cet onglet permet de comparer le comportement des usagers de 2 capteurs différents. Pour
+    h3(" Comparaison de période"),
+    p("Cet onglet permet de comparer le comportement des usagers (uniquement les véhicules et les poids lourds) de deux capteurs différents. Pour
                cela 3 graphiques sont proposés, avec chacun une courbe par capteur :"),
     p("- Un graphique de la tendance, qui correspond à l’évolution liée à la période de l’année"),
     p("- Un graphique montrant l’effet de chaque jour de la semaine."),
@@ -174,6 +174,7 @@ ui_6 <- function(id){
             Pour tester si ce nombre est important la fonction procède à une estimation via  une méthode de Monte Carlo, en mélangeant plusieurs fois les deux séries pour observer le nombre de pics communs dans chaque cas, et voir si ces valeurs sont éloignées ou non de la proportion initiale.
             Si on rejette l’hypothèse que la synchronicité des pics est du au hasard, on affiche "Les pics des deux courbes sont atteints en même temps très souvent.", sinon "On ne peut pas dire que les pics des deux courbes sont souvent atteints en même temps.".')
     ),
+    p('Remarque: les notions de corrélation et de synchronicité des pics sont indépendant de la normalisation.'),
       br(),
     br(),
   uiOutput(ns("result"))
@@ -187,9 +188,8 @@ server_6 <- function(input,output,session,data){
   
   observe({ # update sensor selection according to import tab
     if (!is.null(data$sensors)){
-      names_selected_sensors <- setNames(data$sensors,sensor_names[sensor_ids%in%data$sensors])
-      updateSelectInput(session, "sensor1", choices = names_selected_sensors)
-      updateSelectInput(session, "sensor2", choices = names_selected_sensors)
+      updateSelectInput(session, "sensor1", choices = data$sensors)
+      updateSelectInput(session, "sensor2", choices = data$sensors)
     }
     
   })
