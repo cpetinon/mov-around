@@ -1,97 +1,4 @@
-decompose_2_fct <- function(data, sensor1,sensor2, heure, direction1, direction2, mobility, norm){
-  data1 <- data %>% filtering(sensor = sensor1, mobility = mobility, direction = direction1) %>%
-                    filter(hour(date)==heure)
-  data2 <- data %>% filtering(sensor = sensor2, mobility = mobility, direction = direction2) %>%
-                    filter(hour(date)==heure)
-  
-  data1 <- data1 %>% filter(date %in% data2$date) # intersection of dates between the two tables
-  data2 <- data2 %>% filter(date %in% data1$date)
-  
-  if(length(data1$date)<28){ # if the period is too short to make a valid decomposition
-    return(NULL)
-  }
-  
-  d1 <- ts(data1$total, frequency = 7) %>% # conversion in time serie
-        decompose(type="additive",filter = c(0.5, rep(1, 14 - 1), 0.5)/14) # decomposition
-  d2 <- ts(data2$total, frequency = 7) %>% 
-        decompose(type="additive",filter = c(0.5, rep(1, 14 - 1), 0.5)/14)
-  
-  result <- data.frame(d1$trend,d2$trend,d1$seasonal,d2$seasonal,d1$random,d2$random,data1$total,data2$total)
-  
-  if (norm=="Oui"){ # normalisation
-    result <- data.frame(apply(result,2,scale))
-  }
-  
-  lab_sensor1 <- paste(sensor_names[sensor_ids==sensor1],direction1)
-  lab_sensor2 <- paste(sensor_names[sensor_ids==sensor2],direction2)
-  
-  trend_random <- data.frame(
-                      base = c(result$data1.total,result$data2.total),
-                      trend = c(result$d1.trend,result$d2.trend),
-                      random = c(result$d1.random,result$d2.random),
-                      date = data1$date,
-                      sensor = c(rep(lab_sensor1, nrow(result)), rep(lab_sensor2, nrow(result))))
 
-  seas <- data.frame(seas = c(result$d1.seasonal[1:7],result$d2.seasonal[1:7]),
-                     sensor = c(rep(lab_sensor1,7), rep(lab_sensor2, 7)),
-                     date = c(1:7,1:7))
-  peaks <-  peaks(result$d1.random %>% na.trim(),result$d2.random %>% na.trim(),nrands = 100)
-  correl <- round(cor(result$d1.random,result$d2.random,use = "na.or.complete"),3)
-  
-  return(list(trend_random=trend_random, seas=seas, peaks = peaks, correl = correl, export_d = result))
-}
-
-
-
-plot_deseas <- function(data, sensor1,sensor2, heure, direction1, direction2, mobility, norm){
-  decompose_2 <- decompose_2_fct(data, sensor1,sensor2, heure, direction1, direction2, mobility, norm)
-  if (is.null(decompose_2)){
-    return(NULL)
-  }
-  trend_random <- decompose_2[['trend_random']]
-  seas <- decompose_2[['seas']]
-  
-  if (norm=="Oui"){
-    put_ticks <- labs(x = "Date", y= " ") +
-                 theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
-  } else {
-    put_ticks  <- labs(x = "Date", y="Variation en nombre de véhicules")
-  }
-  
-  graphiques <- list(trend = NULL, seasonal = NULL,random = NULL,
-                     peaks = decompose_2$peaks, correl = decompose_2$correl, export_d = decompose_2$export_d)
-  # seasonal
-  graphiques$seasonal <- ggplot(seas) + geom_line(aes(x=date,y=seas,col=sensor),size=1)+
-                        scale_x_continuous(breaks = 1:7, 
-                                           label = c("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")) + 
-                        ggtitle('Seasonal')+
-                        put_ticks+
-                        theme_bw()+
-                      theme(panel.background = element_rect(fill = "#F5F5F5"),
-                            panel.grid = element_line(color = "#E3E3E3"),
-                            panel.border = element_rect(color = "#E3E3E3", size = 2))
-  # trend
-  graphiques$trend <- ggplot(trend_random, aes(x=date)) + 
-    geom_line(aes(y=base,col=sensor), alpha = 0.4) +
-    geom_line(aes(y=trend,col=sensor),size=1) +
-    ggtitle('Trend')+
-    put_ticks+
-    theme_bw()+
-    theme(panel.background = element_rect(fill = "#F5F5F5"),
-          panel.grid = element_line(color = "#E3E3E3"),
-          panel.border = element_rect(color = "#E3E3E3", size = 2))
-  # random
-  graphiques$random <- ggplot(trend_random) +
-    geom_line(aes(x=date,y=random,col=sensor))+
-    ggtitle('Random') +
-    put_ticks+
-    theme_bw()+
-  theme(panel.background = element_rect(fill = "#F5F5F5"),
-    panel.grid = element_line(color = "#E3E3E3"),
-    panel.border = element_rect(color = "#E3E3E3", size = 2))
-
-  return(graphiques)
-}
 
 ##############################################
 #                  Module                    #
@@ -139,8 +46,8 @@ ui_6 <- function(id){
     )),
     
           
-    h3(" Comparaison de période"),
-    p("Cet onglet permet de comparer le comportement des usagers (uniquement les véhicules et les poids lourds) de deux capteurs différents. Pour
+    h3(" Comparaison de période :"),
+    p("Cet onglet permet de comparer le comportement des usagers de 2 capteurs différents. Pour
                cela 3 graphiques sont proposés, avec chacun une courbe par capteur :"),
     p("- Un graphique de la tendance, qui correspond à l’évolution liée à la période de l’année"),
     p("- Un graphique montrant l’effet de chaque jour de la semaine."),
@@ -174,7 +81,6 @@ ui_6 <- function(id){
             Pour tester si ce nombre est important la fonction procède à une estimation via  une méthode de Monte Carlo, en mélangeant plusieurs fois les deux séries pour observer le nombre de pics communs dans chaque cas, et voir si ces valeurs sont éloignées ou non de la proportion initiale.
             Si on rejette l’hypothèse que la synchronicité des pics est du au hasard, on affiche "Les pics des deux courbes sont atteints en même temps très souvent.", sinon "On ne peut pas dire que les pics des deux courbes sont souvent atteints en même temps.".')
     ),
-    p('Remarque: les notions de corrélation et de synchronicité des pics sont indépendant de la normalisation.'),
       br(),
     br(),
   uiOutput(ns("result"))
@@ -188,8 +94,9 @@ server_6 <- function(input,output,session,data){
   
   observe({ # update sensor selection according to import tab
     if (!is.null(data$sensors)){
-      updateSelectInput(session, "sensor1", choices = data$sensors)
-      updateSelectInput(session, "sensor2", choices = data$sensors)
+      names_selected_sensors <- setNames(data$sensors,sensor_names[sensor_ids%in%data$sensors])
+      updateSelectInput(session, "sensor1", choices = names_selected_sensors)
+      updateSelectInput(session, "sensor2", choices = names_selected_sensors)
     }
     
   })
