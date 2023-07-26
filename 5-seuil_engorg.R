@@ -72,7 +72,7 @@ server_5 <- function(input, output, session, data) {
 
   #--- function application ---
   result <- reactive({
-    plot_speed(data=data$data, sensor=input$sensor, date_range=input$date_range,direction=input$sens3)
+    plot_speed(data=data$data_comp |> filter(!is.na(car)), sensor=input$sensor, date_range=input$date_range,direction=input$sens3)
   })
   
   #--- output definition ---

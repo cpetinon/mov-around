@@ -1,5 +1,40 @@
+##############################################
+#               Functions                    #
+##############################################
+
+########################
+# Importation of complete data associated to a list of sensor
+########################
 
 
+#' Importation of complete data associated to a list of sensor
+#' @param Numeric. A list of sensor's ID
+#'
+#' @return data.frame
+#' @export
+#' @examples
+#' 
+importation_comp <- function(sensor_ids,sensor_comp_names){
+  data <- data.frame()
+  data <- map_dfr(sensor_comp_names, ~ {
+    file <- paste0('data/', .x, '.csv')
+    if (file.exists(file)) {
+      read.csv(file, header = TRUE, sep = ";", dec = ",")
+    } else {
+      NULL
+    }
+  })
+  
+  data_na <- data |> filter(is.na(car)) |> mutate(car_speed_hist_0to120plus = NA,
+                                                  car_speed_hist_0to70plus = NA)
+  data_sana <- data |> filter(!is.na(car)) |> 
+    mutate(car_speed_hist_0to70plus = convert_string_to_list(car_speed_hist_0to70plus),
+           car_speed_hist_0to120plus = convert_string_to_list(car_speed_hist_0to120plus))
+  data <- rbind(data_na, data_sana) |> arrange(date)
+  
+  # data$date <- ymd_hms(data$date)
+  return(data)
+}
 
 ##############################################
 #                  Module                    #
@@ -109,7 +144,8 @@ server_2 <- function(input, output, session){
   # Initialization of the reactive
   data <- reactiveValues(
     sensors = NULL,
-    data = tibble()
+    data = tibble(),
+    data_comp = tibble()
   )
   
   
@@ -126,6 +162,7 @@ server_2 <- function(input, output, session){
       add <- setdiff(input$Capteurs, data$sensors) %>% import_sensor()
       data$data <- data$data %>% rbind(add) %>% # add new sensors  
                                  filter((segment_id %in% input$Capteurs)) # remove sensors that are not selected anymore
+      data$data_comp <- importation_comp(input$sensors,sensor_comp_names[sensor_ids%in%input$Capteurs])
       output$import_state <- renderText(paste("Les capteurs importés sont: ", paste(sensor_names[sensor_ids%in%input$Capteurs],collapse=', ')))
       data$sensors <- input$Capteurs
     }

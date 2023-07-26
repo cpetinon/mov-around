@@ -104,7 +104,7 @@ server_3 <- function(input, output, session, data){
 
   #--- parameters ---
   param_general <- reactive({ # parameters needed for all periods
-    list(data=data$data, sensor = input$sensor, direction = input$sens,mobility = input$mobilite)
+    list(data=data$data_comp |> filter(!is.na(car)), sensor = input$sensor, direction = input$sens,mobility = input$mobilite)
   })
   
   param_ref <- reactive({ # parameters of the reference period

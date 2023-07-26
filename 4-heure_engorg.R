@@ -49,7 +49,7 @@ server_4 <- function(input, output, session, data){
   
   #--- function application ---
   result <- reactive({
-    plot_hour_threshold(data = data$data, sensor = input$sensor, date_range = input$date_range, vac = input$vacation, p_h = input$p_h, wkd = input$wkd)
+    plot_hour_threshold(data = data$data_comp |> filter(!is.na(car)), sensor = input$sensor, date_range = input$date_range, vac = input$vacation, p_h = input$p_h, wkd = input$wkd)
   })
   
   #--- output definition ---
