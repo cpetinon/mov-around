@@ -94,18 +94,6 @@ ui_2 <- function(id){
     br(),
     
     ########
-    # Update part
-    ########
-    h3("Mise à jour des données"),
-    div(class = "text-center",
-        p("Les données qu'utilisent cette application proviennent de l'API Telraam."),
-        textOutput(ns("update_state")), br(),
-        actionButton(ns("update"), "Mettre à jour les données")
-    ),
-    textOutput(ns("existence_key")),
-    br(),
-    
-    ########
     # Missing data part
     ########
     h3(class="text-center","Les valeurs manquantes"),
@@ -177,81 +165,6 @@ server_2 <- function(input, output, session){
       write_excel_csv2(data$data, file)
     }
   )
-  
-  
-  #################################
-  #            Update             #
-  #################################
-  
-  ## Initialization of the update reactive 
-  
-  if (file.exists("data/date.txt")){ # When the database already exists
-    
-    date <- readLines("data/date.txt")
-    
-    # to see if an update is possible
-    if (ymd(date) <  today){
-      action <- ", une mise à jour avec l'API Telraam est possible."
-    } else {
-      action <- ", la base de données est à jour avec l'API Telraam."
-    }
-    
-    update <- reactiveValues(
-      state = paste0("Les données stockées dans l'application vont du 2021-01-01 au ", date, action) ,
-      date = date,
-      key = NULL
-    )
-    
-  } else { # When the database is empty
-    update <- reactiveValues(
-      state = "La base de données est vide, veuillez mettre à jour les données",
-      date = "2021-01-01", # the database begins the 2021-01-01
-      key = NULL
-    )
-  }
-  
-  # Update of the database reactif after triger of the update button
-  observeEvent(input$update,{
-    date <- ymd(update$date)
-    
-    # determination of if an update is possible, otherwise nothing happened
-    if (date < today){
-      
-      # verification of the existence of the API's key
-      if (is.null(key)){
-        update$state <- "La cle pour appeler l'API n'existe pas"
-      } else if (!api_state("clef.txt")){
-        update$state <- "Il semble y avoir un problème au niveau de l'API. Veuillez attendre le lendemain ou contacter le support."
-      } else {
-        # the update is launched
-        withProgress(message = "Mise à jour de", value = 0,{ # progress bar
-          incProgress(0, detail = paste("Capteurs"))
-          k <- 2
-          for (id_sensor in sensor_ids) { # iteration on all sensors
-            incProgress(1/(length(sensor_ids)+1), detail = sensor_names[(sensor_ids==id_sensor)]) # incrementation of the progress bar
-            k <- k+1
-            yesterday <- today - days(1) # ! today is excluded !
-            write_update_data(id_sensor, date1 = date, date2 = yesterday) 
-          }
-        })
-        
-        # update of the date of the next update
-        writeLines(as.character(today), con = "data/date.txt")
-        update$date <- today
-        
-        # update of the state of the database
-        update$state <- paste0("Les données vont du 2021-01-01 au ", today - days(1),", la base de donnée a été mise à jour, veuillez redémarrer l'application")
-      }
-    }
-  })
-  
-  output$update_state <- renderText({
-    update$state
-  })
-  
-  output$existence_key <- renderText({
-    update$key
-  })
   
   #################################
   #            Plot               #
