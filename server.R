@@ -6,6 +6,8 @@ shinyServer(function(session,input, output) {
   callModule(server_4, id = "4", session = session, data)
   callModule(server_5, id = "5", session = session, data)
   callModule(server_6, id = "6", session = session, data)
-})
+  callModule(server_8, id = "8", session = session, data)
+  })
 
 #install.packages("C:/Users/Ulysse/Documents/ulysse/appli_stage/mov-around-pkg/telraamStats_0.0.0.9000.tar.gz")
+#devtools::install_github("UCaromel/telraamStats")
