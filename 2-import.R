@@ -61,8 +61,6 @@ ui_2 <- function(id){
     ########
     # Missing data part
     ########
-    h3(class="text-center","Les valeurs manquantes"),
-    p(class="text-center",'à compléter'),
     h4("Avertissement relatif à la qualité des données :"),
     p(class="text-center","Les données des capteurs Telraam ne sont pas issues d’une mesure continue sur une heure. Pour améliorer la qualité des données futures,
     les capteurs dédient une partie de leur temps d’activité à l’apprentissage. Les données totales sont reconstituées à partir du temps de mesure.
