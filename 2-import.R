@@ -1,40 +1,5 @@
-##############################################
-#               Functions                    #
-##############################################
-
-########################
-# Importation of complete data associated to a list of sensor
-########################
 
 
-#' Importation of complete data associated to a list of sensor
-#' @param Numeric. A list of sensor's ID
-#'
-#' @return data.frame
-#' @export
-#' @examples
-#' 
-importation_comp <- function(sensor_ids,sensor_comp_names){
-  data <- data.frame()
-  data <- map_dfr(sensor_comp_names, ~ {
-    file <- paste0('data/', .x, '.csv')
-    if (file.exists(file)) {
-      read.csv(file, header = TRUE, sep = ";", dec = ",")
-    } else {
-      NULL
-    }
-  })
-  
-  data_na <- data |> filter(is.na(car)) |> mutate(car_speed_hist_0to120plus = NA,
-                                                  car_speed_hist_0to70plus = NA)
-  data_sana <- data |> filter(!is.na(car)) |> 
-    mutate(car_speed_hist_0to70plus = convert_string_to_list(car_speed_hist_0to70plus),
-           car_speed_hist_0to120plus = convert_string_to_list(car_speed_hist_0to120plus))
-  data <- rbind(data_na, data_sana) |> arrange(date)
-  
-  # data$date <- ymd_hms(data$date)
-  return(data)
-}
 
 ##############################################
 #                  Module                    #
@@ -132,25 +97,20 @@ server_2 <- function(input, output, session){
   # Initialization of the reactive
   data <- reactiveValues(
     sensors = NULL,
-    data = tibble(),
-    data_comp = tibble()
+    data = tibble()
   )
   
   
   # Update of data reactive
   observe({
-    if (!file.exists('data/date.txt')){
-      output$import_state <- renderText({"La base de données est vide, veuillez cliquer sur le bouton mise à jour"})
-      
-    } else if (is.null(input$Capteurs)){
+    if (is.null(input$Capteurs)){
       output$import_state <- renderText({"Pas de capteurs sélectionnés"})
       
     } else {
       # if truc pas NULL alors keep
       add <- setdiff(input$Capteurs, data$sensors) %>% import_sensor()
-      data$data <- data$data %>% rbind(add) %>% # add new sensors  
+      data$data <- data$data %>% rbind(add) %>% # add new sensors
                                  filter((segment_id %in% input$Capteurs)) # remove sensors that are not selected anymore
-      data$data_comp <- importation_comp(input$sensors,sensor_comp_names[sensor_ids%in%input$Capteurs])
       output$import_state <- renderText(paste("Les capteurs importés sont: ", paste(sensor_names[sensor_ids%in%input$Capteurs],collapse=', ')))
       data$sensors <- input$Capteurs
     }
@@ -189,10 +149,10 @@ server_2 <- function(input, output, session){
         ),
         column(3,
                dateRangeInput(ns("date_range_simple_plot"), "Période",
-                              start  = "2021-01-01",
-                              end    = Sys.Date() - days(1),
-                              min    = "2021-01-01",
-                              max    = Sys.Date() - days(1))
+                              start  = starting_date,
+                              end    = ending_date - days(1),
+                              min    = starting_date,
+                              max    = ending_date - days(1))
         ),
         column(3),
         plotOutput(ns('simple_plot')),
