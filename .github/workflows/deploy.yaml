@@ -3,7 +3,7 @@ name: Deploy to shinyapps.io
 on:
   push:
     branches:
-      - github_actions_shinyapps
+      - main
   workflow_dispatch:  # Manual trigger
   
 env:
