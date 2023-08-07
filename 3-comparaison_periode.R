@@ -1,11 +1,13 @@
+
+
 generate_comparison_section <- function(ns, label_color, ns_date, ns_vac, ns_ph, ns_wkd, label_text) {
   tagList(
     h2(span(style = paste("color:", label_color), label_text)),
     dateRangeInput(ns_date, "Période",
-                   start  = "2021-01-01",
-                   end    = Sys.Date() - days(1),
-                   min    = "2021-01-01",
-                   max    = Sys.Date() - days(1)),
+                   start  = starting_date,
+                   end    = ending_date - days(1),
+                   min    = starting_date,
+                   max    = ending_date - days(1)),
     radioButtons(inputId = ns_vac, label = "Vacances comprises :",
                  choices = c("Oui", "Non", "Seulement les vacances"), selected = "Oui"),
     radioButtons(inputId = ns_ph, label = "Jours fériés compris :",
@@ -104,7 +106,7 @@ server_3 <- function(input, output, session, data){
 
   #--- parameters ---
   param_general <- reactive({ # parameters needed for all periods
-    list(data=data$data_comp |> filter(!is.na(car)), sensor = input$sensor, direction = input$sens,mobility = input$mobilite)
+    list(data=data$data, sensor = input$sensor, direction = input$sens,mobility = input$mobilite)
   })
   
   param_ref <- reactive({ # parameters of the reference period

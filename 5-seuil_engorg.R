@@ -29,10 +29,10 @@ ui_5 <- function(id){
                   choices = c("Toute", "plus de 10km/h", "plus de 20km/h", "plus de 30km/h", "plus de 40km/h"),
                   selected = "Toute"),
       dateRangeInput(ns("date_range"), "Période",
-                     start = "2021-01-01",
-                     end = Sys.Date() - days(1),
-                     min = "2021-01-01",
-                     max = Sys.Date() - days(1)),
+                     start = starting_date,
+                     end = ending_date - days(1),
+                     min = starting_date,
+                     max = ending_date - days(1)),
       radioButtons(ns("state_threshold"),
                    "Choix du seuil :",
                    selected = "automatique",
@@ -72,7 +72,7 @@ server_5 <- function(input, output, session, data) {
 
   #--- function application ---
   result <- reactive({
-    plot_speed(data=data$data_comp |> filter(!is.na(car)), sensor=input$sensor, date_range=input$date_range,direction=input$sens3)
+    plot_speed(data=data$data, sensor=input$sensor, date_range=input$date_range,direction=input$sens3)
   })
   
   #--- output definition ---

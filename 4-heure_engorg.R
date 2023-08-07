@@ -1,4 +1,5 @@
 
+
 ##############################################
 #                  Module                    #
 ##############################################
@@ -10,10 +11,10 @@ ui_4 <- function(id){
                   label = "Choix du capteur",
                   choices = NULL),
       dateRangeInput(ns("date_range"), "Période",
-                     start  = "2021-01-01",
-                     end    = Sys.Date()-days(1),
-                     min    = "2021-01-01",
-                     max    = Sys.Date()-days(1)),
+                     start  = starting_date,
+                     end    = ending_date-days(1),
+                     min    = starting_date,
+                     max    = ending_date-days(1)),
       radioButtons(inputId = ns("vacation"), label = "Vacances comprises :",
                    choices = c("Oui","Non","Seulement les vacances"),selected = "Non"),
       radioButtons(inputId = ns("p_h"), label = "Jours fériés compris :",
@@ -49,7 +50,7 @@ server_4 <- function(input, output, session, data){
   
   #--- function application ---
   result <- reactive({
-    plot_hour_threshold(data = data$data_comp |> filter(!is.na(car)), sensor = input$sensor, date_range = input$date_range, vac = input$vacation, p_h = input$p_h, wkd = input$wkd)
+    plot_hour_threshold(data = data$data, sensor = input$sensor, date_range = input$date_range, vac = input$vacation, p_h = input$p_h, wkd = input$wkd)
   })
   
   #--- output definition ---
