@@ -42,7 +42,7 @@ today <- today()
 # API key (see the Telraam site to generate one)
 ########
 
-key <- Sys.getenv("MY_KEY")
+key <- Sys.getenv("TELRAAM_KEY")
 key1 <- c(
   'X-Api-Key' = key
 )
