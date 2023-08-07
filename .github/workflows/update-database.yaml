@@ -7,6 +7,7 @@ on:
 
 env:
   GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+  TELRAAM_KEY: ${{ secrets.TELRAAM_KEY }}
 
 jobs:
   update:
@@ -28,8 +29,6 @@ jobs:
         run: Rscript install-packages-update.R
 
       - name: Run R script
-        env:
-          MY_KEY: ${{ secrets.TELRAAM_KEY }}
         run: Rscript update-database.R
         
       - name: Commit and Push Changes
