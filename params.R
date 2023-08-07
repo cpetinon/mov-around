@@ -15,12 +15,5 @@ sensor_names <- c("Burel-01","Leclerc-02","ParisMarche-03","rueVignes-04","Paris
                   "RueCottage-12","RueVeronniere-13","RueDesEcoles-14","RueManoirs-15","RueToursCarree-16",
                   "PlaceHotelDeVille-17","BoulevardLiberte-18")
 
-sensor_comp_names <- c("Burel_comp-01","Leclerc_comp-02","ParisMarche_comp-03","rueVignes_comp-04",
-                       "ParisArcEnCiel_comp-05","RteVitre_comp-06", "RueGdDomaine_comp-07",
-                       "StDidierNord_comp-08","rueVallee_comp-09","StDidierSud_comp-10","RuePrieure_comp-11",
-                       "RueCottage_comp-12","RueVeronniere_comp-13","RueDesEcoles_comp-14","RueManoirs_comp-15",
-                       "RueToursCarree_comp-16", "PlaceHotelDeVille_comp-17","BoulevardLiberte_comp-18")
-
-
 starting_date <- "2021-01-01"
 ending_date <- Sys.Date()
