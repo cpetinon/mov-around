@@ -3,12 +3,12 @@ name: Deploy to shinyapps.io
 on:
   push:
     branches:
-      - main
+      - github_actions_shinyapps
   workflow_dispatch:  # Manual trigger
   
 env:
   GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-  MY_KEY: ${{ secrets.TELRAAM_KEY }}
+  TELRAAM_KEY: ${{ secrets.TELRAAM_KEY }}
 
 jobs:
   deploy:
