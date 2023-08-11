@@ -15,5 +15,16 @@ sensor_names <- c("Burel-01","Leclerc-02","ParisMarche-03","rueVignes-04","Paris
                   "RueCottage-12","RueVeronniere-13","RueDesEcoles-14","RueManoirs-15","RueToursCarree-16",
                   "PlaceHotelDeVille-17","BoulevardLiberte-18")
 
+########
+# Starting and ending dates
+########
+
 starting_date <- "2021-01-01"
 ending_date <- Sys.Date()
+
+########
+# Key handling
+########
+
+key <- Sys.getenv("TELRAAM_KEY")
+telraamStats::set_telraam_token(key)
