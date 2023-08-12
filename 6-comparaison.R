@@ -42,7 +42,7 @@ ui_6 <- function(id){
         choiceValues = c("car","heavy","pedestrian","bike")
       ),
       radioButtons(inputId = ns("norm"), label = "Normaliser :",
-                   choices = c("Oui","Non"),selected = "Non",inline = TRUE)
+                   choices = c("Oui"="YES","Non"="NO"),selected = "NO",inline = TRUE)
     )),
     
           

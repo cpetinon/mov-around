@@ -26,8 +26,8 @@ ui_5 <- function(id){
                   choices = c("Toute" = " ", "B vers A" = "_rgt", "A vers B" = "_lft"),
                   selected = "Toute"),
       selectInput(ns("vit"), label = "Choix de la courbe servant à déterminer le seuil",
-                  choices = c("Toute", "plus de 10km/h", "plus de 20km/h", "plus de 30km/h", "plus de 40km/h"),
-                  selected = "Toute"),
+                  choices = c("Toute"="ALL", "plus de 10km/h"="MORE THAN 10KM/H", "plus de 20km/h"="MORE THAN 20KM/H", "plus de 30km/h"="MORE THAN 30KM/H", "plus de 40km/h"="MORE THAN 40KM/H"),
+                  selected = "ALL"),
       dateRangeInput(ns("date_range"), "Période",
                      start = starting_date,
                      end = ending_date - days(1),
@@ -35,8 +35,8 @@ ui_5 <- function(id){
                      max = ending_date - days(1)),
       radioButtons(ns("state_threshold"),
                    "Choix du seuil :",
-                   selected = "automatique",
-                   choices = c("automatique", "manuel"),
+                   selected = "auto",
+                   choices = c("automatique"="auto", "manuel"="manual"),
                    inline = TRUE),
       uiOutput(ns("threshold"))
     )),
@@ -77,6 +77,9 @@ server_5 <- function(input, output, session, data) {
   
   #--- output definition ---
   output$plot_s <- renderPlot({
+    print(input$vit)
+    print(input$state_threshold)
+    print(input$threshold)
     plot_threshold(result(),selected_speed = input$vit, state_threshold = input$state_threshold,threshold=input$threshold)
   })
   
@@ -112,12 +115,12 @@ server_5 <- function(input, output, session, data) {
   )
 
   output$threshold <- renderUI({
-    if (input$state_threshold == "manuel") {
+    if (input$state_threshold == "manual") {
       sliderInput(ns("threshold"),
                   label="Valeur du seuil",
-                  min=round(min(result()$data$count_car, na.rm = TRUE)),
-                  max=round(max(result()$data$count_car, na.rm = TRUE)),
-                  value=floor(max(result()$data$count_car, na.rm = TRUE)),
+                  min=round(min(result()$data_plot$count, na.rm = TRUE)),
+                  max=round(max(result()$data_plot$count, na.rm = TRUE)),
+                  value=floor(max(result()$data_plot$count, na.rm = TRUE)),
                   step = 1, round = FALSE)
     }
   })

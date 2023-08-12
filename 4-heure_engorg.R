@@ -16,9 +16,9 @@ ui_4 <- function(id){
                      min    = starting_date,
                      max    = ending_date-days(1)),
       radioButtons(inputId = ns("vacation"), label = "Vacances comprises :",
-                   choices = c("Oui","Non","Seulement les vacances"),selected = "Non"),
+                   choices = c("Oui"="YES", "Non"="NO", "Seulement les vacances" = "ONLY"), selected = "NO"),
       radioButtons(inputId = ns("p_h"), label = "Jours fériés compris :",
-                   choices = c("Oui","Non","Seulement les jours fériés"),selected = "Non"),
+                   choices = c("Oui"="YES", "Non"="NO", "Seulement les jours fériés" = "ONLY"), selected = "NO"),
       checkboxGroupInput(
         ns("wkd"),
         "Choix des jours",
