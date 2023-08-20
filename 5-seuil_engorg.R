@@ -77,9 +77,6 @@ server_5 <- function(input, output, session, data) {
   
   #--- output definition ---
   output$plot_s <- renderPlot({
-    print(input$vit)
-    print(input$state_threshold)
-    print(input$threshold)
     plot_threshold(result(),selected_speed = input$vit, state_threshold = input$state_threshold,threshold=input$threshold)
   })
   
