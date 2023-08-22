@@ -37,12 +37,3 @@ source('params.R')
 
 options(lubridate.week.start = 1)  # To start the week on day 1 (package parameter)
 today <- today()
-
-########
-# API key (see the Telraam site to generate one)
-########
-
-key <- Sys.getenv("TELRAAM_KEY")
-key1 <- c(
-  'X-Api-Key' = key
-)

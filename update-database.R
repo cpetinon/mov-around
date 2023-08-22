@@ -15,15 +15,6 @@ source('params.R')
 
 options(lubridate.week.start = 1)  # To start the week on day 1 (package parameter)
 
-########
-# API key (see the Telraam site to generate one)
-########
-
-key <- Sys.getenv("TELRAAM_KEY")
-key1 <- c(
-  'X-Api-Key' = key
-)
-
 ## Initialization of the update
 
 date_filepath <- "data/date.txt"
@@ -42,7 +33,7 @@ updateDatabase <- function(update) {
     # Check the existence of the API's key
     if (is.null(key)) {
       update$state <- "The API key is missing."
-    } else if (!api_state(key1)) {
+    } else if (!api_state()) {
       update$state <- "There seems to be a problem with the API. Please wait until tomorrow or contact support."
     } else {
       # Update the database
