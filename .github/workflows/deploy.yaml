@@ -38,4 +38,4 @@ jobs:
     - name: Deploy to shinyapps.io
       run: |
         Rscript -e "rsconnect::setAccountInfo(name='agistaterre', token=${{secrets.SHINY_TOKEN}}, secret=${{secrets.SHINY_SECRET}})"
-        Rscript -e "rsconnect::deployApp(appName = 'mov-around')" 
+        Rscript -e "rsconnect::deployApp(appName = 'mov-around', forceUpdate = TRUE)" 
