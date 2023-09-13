@@ -162,7 +162,7 @@ server_3 <- function(input, output, session, data){
     filename = "Comparaison_periode.csv", # file name that will be written
     content = function(file) {
       write_excel_csv2(data.frame(cbind(ref = result1()$data_mean_ref,
-                                        P_1 = result1()$data_mean_ref,
+                                        P_1 = result1()$data_mean_compar,
                                         P_2 = result2()$data_mean_compar)), file)
     }
   )
