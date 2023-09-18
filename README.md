@@ -57,6 +57,6 @@ Ici nous utilisons la solution d'hébergement *shinyapps* proposée par *RStudio
 
 ## Utilisation de l'appli déployée
 
-Les utilisateurs doivent simplement se rendre sur l'url [https://agistaterre.shinyapps.io/traffic_routier/](https://agistaterre.shinyapps.io/traffic_routier/)
+Les utilisateurs doivent simplement se rendre sur l'url [https://agistaterre.shinyapps.io/mov-around/](https://agistaterre.shinyapps.io/mov-around/)
 
 
