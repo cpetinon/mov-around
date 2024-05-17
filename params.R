@@ -27,4 +27,4 @@ ending_date <- Sys.Date()
 ########
 
 key <- Sys.getenv("TELRAAM_KEY")
-telraamStats::set_telraam_token(key)
+telraamStatsAgisTaTerre::set_telraam_token(key)

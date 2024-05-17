@@ -5,7 +5,7 @@ library(readr)
 library(httr)
 library(dplyr)
 
-library(telraamStats)
+library(telraamStatsAgisTaTerre)
 
 source('params.R')
 
