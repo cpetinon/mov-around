@@ -31,10 +31,32 @@ ui_7 <- function(id){
     )),
     
     h3("Seuil d'engorgement :"),
-    p("Cet onglet permet de visualiser, pour un capteur, le seuil d'engorgement. Pour cela deux graphiques sont proposés : 
-      - Un graphique montrant la vitesse (km/h) en fonction du nombre de véhicules par km.
-      - Un graphique montrant le nombre de véhicules par heure en fonction du nombre de véhicules par km.
-      On peut alors observer à partir de combien de véhicules la section de route présente des engorgements ."),
+    p("Cet onglet permet de visualiser, pour un capteur, le seuil d'engorgement. 
+          Pour cela deux graphiques sont proposés : "),
+    p("- Un graphique montrant la vitesse (km/h) en fonction du nombre de véhicules par km."),
+    p("- Un graphique montrant le nombre de véhicules par heure en fonction du nombre de véhicules par km."),
+    p("Remarque : Il est important de lire les deux graphiques afin d'avoir les informations nécessaires.
+      En effet, les informations dont fournies même s'il n'y a pas d'engorgement sur le réseau."),
+    
+    p("On peut alors observer à partir de combien de véhicules la section de route présente des engorgements ."),
+    p("Le premier graphique indique à partir de combien de véhicules par km il commence 
+        à y avoir des engorgements et quand est ce que le réseau est complétement saturé. 
+        (2 points sur les droites)"),
+    p("Le deuxième graphique indique à partir de combien de véhicules par heure il commence 
+        à y avoir des engorgements et quand est ce que le réseau est complétement saturé. 
+        (2 points sur les paraboles"),
+    p("Le deuxième graphique nous permet de savoir si les indications apportées 
+        par le premier graphique sont exploitables. 
+        Si les points noirs dépassent le point orange indiquant la saturation du réseau en 
+        véhicules par heure alors les informations ont une signification sinon il semblerait 
+        qu'il y ait une réduction de la vitesse sans saturation complète du réseau routier étudié."),
+    
+    #A AJOUTER A LA BONNE PLACE (lorsque le capteur est un v1)
+    p("Vous avez choisi une direction. Malheureusement elle n'est pas disponible pour ce segment."),
+    p("Les graphiques affichés tiennent donc du nombre total de véhicules sur le réseau"),
+    p("Il est donc normal de ne pas forcément oberserver d'engorgement malgré la réalité 
+      car en général il se réalise dans un seul sens de circulation. Ici, il y a une moyenne 
+      entre les deux sens de circulation, ce qui peut fausser les résultats "),
     br(),
     uiOutput(ns("display"))
   )
