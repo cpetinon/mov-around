@@ -9,7 +9,7 @@ ui_7 <- function(id){
                   label = "Choix du capteur",
                   choices = NULL),
       selectInput(ns("sens3"), label = "Direction du capteur",
-                  choices = c("Toute" = " ", "B vers A" = "_rgt", "A vers B" = "_lft"),
+                  choices = c("Toute" = " ", "B vers A" = "rgt", "A vers B" = "lft"),
                   selected = "Toute"),
       dateRangeInput(ns("date_range"), "Période",
                      start  = starting_date,
@@ -31,38 +31,39 @@ ui_7 <- function(id){
     )),
     
     h3("Seuil d'engorgement :"),
-    p("Cet onglet permet de visualiser, pour un capteur, le seuil d'engorgement. 
-          Pour cela deux graphiques sont proposés : "),
-    p("- Un graphique montrant la vitesse (km/h) en fonction du nombre de véhicules par km."),
-    p("- Un graphique montrant le nombre de véhicules par heure en fonction du nombre de véhicules par km."),
-    p("Remarque : Il est important de lire les deux graphiques afin d'avoir les informations nécessaires.
-      En effet, les informations dont fournies même s'il n'y a pas d'engorgement sur le réseau."),
-    
+    p("Cet onglet permet de visualiser, pour un capteur, le nombre d'usagers par heure et par km à partir duquel le réseau routier étudié est saturé.
+      Pour cela deux graphiques sont proposés."),
+    p("- La vitesse (km/h) en fonction du nombre de véhicules par km."),
+    p("- Le nombre de véhicules par heure en fonction du nombre de véhicules par km."),
     p("On peut alors observer à partir de combien de véhicules la section de route présente des engorgements ."),
-    p("Le premier graphique indique à partir de combien de véhicules par km il commence 
-        à y avoir des engorgements et quand est ce que le réseau est complétement saturé. 
-        (2 points sur les droites)"),
-    p("Le deuxième graphique indique à partir de combien de véhicules par heure il commence 
-        à y avoir des engorgements et quand est ce que le réseau est complétement saturé. 
-        (2 points sur les paraboles"),
-    p("Le deuxième graphique nous permet de savoir si les indications apportées 
-        par le premier graphique sont exploitables. 
-        Si les points noirs dépassent le point orange indiquant la saturation du réseau en 
-        véhicules par heure alors les informations ont une signification sinon il semblerait 
-        qu'il y ait une réduction de la vitesse sans saturation complète du réseau routier étudié."),
     
-    #A AJOUTER A LA BONNE PLACE (lorsque le capteur est un v1)
-    p("Vous avez choisi une direction. Malheureusement elle n'est pas disponible pour ce segment."),
-    p("Les graphiques affichés tiennent donc du nombre total de véhicules sur le réseau"),
-    p("Il est donc normal de ne pas forcément oberserver d'engorgement malgré la réalité 
-      car en général il se réalise dans un seul sens de circulation. Ici, il y a une moyenne 
-      entre les deux sens de circulation, ce qui peut fausser les résultats "),
+    actionButton("toggleMethodButton_7", "Détails statistiques", style = "display: block; margin: 0 auto;"),
+    div(id = "methodText_7", style = "display: none;",
+        
+        h4("Méthode pour tracer les courbes :"),
+        p("On commence par filtrer les données selon les sélections de l’utilisateur. 
+          On teste plusieurs courbes afin de trouver celles qui envelopperont au mieux le graphique.
+          On réalise ce test deux fois : Une première fois pour le haut du graphique et une deuxième fois
+          pour le bas. On cherche ensuite le point d'intersection entre les deux droites qui détermine 
+          le début des engorgements. Le point d'intersection entre l'axe des abscisses et la droite enveloppant 
+          le bas du graphique détermine le seuil d'engorgement total du réseau étudié."),
+        br(),
+        
+        h5("Interprétation des courbes :"),
+        p("On a utilisé le modèle de Greenshields.")
+    ),
+    
+    p("AVERTISSEMENT :"),
+    p("- Les points oranges apparaissent toujours même s'il n'y a pas d'embouteillages."),
+    p("- Le calcul conduisant au placement des points n'est pas parfait : ils peuvent être mal placés."),
+    p("Il est donc important de lire les deux graphiques car le deuxième permet de savoir si le réseau présente des embouteillages."),
+
     br(),
     uiOutput(ns("display"))
   )
 }
 
-server_7 <- function(input, output, session, data) {
+server_7 <- function(input, output, session, data){
   ns <- session$ns
   
   observe({  # update sensor selection according to import tab
@@ -74,54 +75,53 @@ server_7 <- function(input, output, session, data) {
   
   #--- function application ---
   result <- reactive({
-    plot_diagram_envelope()
+    print(input$sensor)
+    print(input$date_range)
+    print(input$vacation)
+    print(input$p_h)
+    print(input$wkd)
+    print(input$sens3)
+    plot_diagram_envelope(enriched_data = data$data , segment = input$sensor ,date_range = input$date_range,
+                          vacation_choice = input$vacation, holiday_choice = input$p_h, weekday_choice = input$wkd,
+                          direction_choice = input$sens3)
   })
+  
+  
   
   #--- output definition ---
-  output$plot_s <- renderPlot({
-    plot_threshold(result(),selected_speed = input$vit, state_threshold = input$state_threshold,threshold=input$threshold)
+  output$plot_diagram_envelope1 <- renderPlot({
+    plot(result()[[2]])
   })
   
-  output$display <- renderUI({
-    if (is.null(data$sensors)) {
-      p(class="text-center","Pour afficher le graphique, veuillez sélectionner des capteurs dans l'onglet import.")
-    } else if (nrow(data$data) < 100) { # if there is not enough data to calculate a threshold
-      p("Attention : période trop courte ou pour laquelle le capteur ne possède pas de données !")
+  output$plot_diagram_envelope2 <- renderPlot({
+    plot(result()[[1]])
+  })  
+  
+  output$display <- renderUI(
+    if (is.null(data$sensors)){
+      p(class="text-center", "Pour afficher le graphique, veuillez sélectionner des capteurs dans l'onglet import.")
+    }
+    else if (is.null(input$wkd)){
+      p("Le graphique est vide pour les critères sélectionnés")
     } else {
       column(width = 9,
-             h5("Précisions sur le chartique"),
-             p("Le chartique suivant indique pour chaque courbe le pourcentage de conducteurs (véhicules légers
-               et poids lourds) qui arrivent à dépasser la vitesse spécifiée en fonction du nombre d'autres
-               conducteurs sur la route durant une même période horaire."),
-             p("Un changement brusque dans les courbes peut indiquer une présence régulière d'embouteillage
-               lorsqu'on dépasse la valeur du changement. La barre rouge indique cette valeur."),
-             br(),
-             p("Avertissement :"),
-             p("1. La barre apparait toujours, même pour les routes sans embouteillages."),
-             p("2. Le calcul conduisant au placement de la barre n'est pas parfait : elle peut être mal placée."),
-             plotOutput(ns("plot_s")),
-             downloadButton(ns("downloadbrut"), "Import des données des courbes brutes (noire)")
+             h3("Diagramme fondamentale avec courbe linéaire"),
+             plotOutput(ns("plot_diagram_envelope1")),
+             p("Ce graphique donne le seuil d'engorgement en veh/km du réseau. Le point de gauche annonce le début des embouteillages tandis que celui de droite 
+               donne la saturation totale du réseau."),
+             h3("Diagramme fondamentale avec courbe parabolique"),
+             plotOutput(ns("plot_diagram_envelope2")),
+             p("Ce graphique donne le seuil en veh/h du réseau. Les points ont la même signification que précedemment."),
+             p("Si les points noirs dépassent le point orange indiquant la saturation du réseau alors des embouteillages sont obervés."),
+             downloadButton(ns("downloadHeure"), "Import des données")
       )
     }
-  })
+  )
   
-  
-  output$downloadbrut <- downloadHandler(
-    filename = "Courbes_brutes.csv",
+  output$downloadHeure <- downloadHandler(
+    filename = "Heure_engorgement.csv", # Nom du fichier importé
     content = function(file) {
       write_excel_csv2(result()$data, file)
     }
   )
-  
-  output$threshold <- renderUI({
-    if (input$state_threshold == "manual") {
-      sliderInput(ns("threshold"),
-                  label="Valeur du seuil",
-                  min=round(min(result()$data_plot$count, na.rm = TRUE)),
-                  max=round(max(result()$data_plot$count, na.rm = TRUE)),
-                  value=floor(max(result()$data_plot$count, na.rm = TRUE)),
-                  step = 1, round = FALSE)
-    }
-  })
-  
 }
