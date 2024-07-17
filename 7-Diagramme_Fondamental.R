@@ -36,10 +36,16 @@ ui_7 <- function(id){
     p("- La vitesse (km/h) en fonction du nombre de véhicules par km."),
     p("- Le nombre de véhicules par heure en fonction du nombre de véhicules par km."),
     p("On peut alors observer à partir de combien de véhicules la section de route présente des engorgements ."),
+    br(),
+    
+    p("AVERTISSEMENT :"),
+    p("- Les points oranges apparaissent toujours même s'il n'y a pas d'embouteillages."),
+    p("- Le calcul conduisant au placement des points n'est pas parfait : ils peuvent être mal placés."),
+    p("Il est donc important de lire les deux graphiques car le deuxième permet de savoir si le réseau présente des embouteillages."),
+    br(),
     
     actionButton("toggleMethodButton_7", "Détails statistiques", style = "display: block; margin: 0 auto;"),
     div(id = "methodText_7", style = "display: none;",
-        
         h4("Méthode pour tracer les courbes :"),
         p("On commence par filtrer les données selon les sélections de l’utilisateur. 
           On teste plusieurs courbes afin de trouver celles qui envelopperont au mieux le graphique.
@@ -52,13 +58,9 @@ ui_7 <- function(id){
         h5("Interprétation des courbes :"),
         p("On a utilisé le modèle de Greenshields.")
     ),
-    
-    p("AVERTISSEMENT :"),
-    p("- Les points oranges apparaissent toujours même s'il n'y a pas d'embouteillages."),
-    p("- Le calcul conduisant au placement des points n'est pas parfait : ils peuvent être mal placés."),
-    p("Il est donc important de lire les deux graphiques car le deuxième permet de savoir si le réseau présente des embouteillages."),
-
     br(),
+    br(),
+    
     uiOutput(ns("display"))
   )
 }
