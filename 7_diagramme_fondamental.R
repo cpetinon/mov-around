@@ -88,12 +88,6 @@ server_7 <- function(input, output, session, data){
   
   #--- function application ---
   result <- reactive({
-    print(input$sensor)
-    print(input$date_range)
-    print(input$vacation)
-    print(input$p_h)
-    print(input$wkd)
-    print(input$sens3)
     plot_diagram_envelope(enriched_data = data$data , segment = input$sensor ,date_range = input$date_range,
                           vacation_choice = input$vacation, holiday_choice = input$p_h, weekday_choice = input$wkd,
                           direction_choice = input$sens3)
