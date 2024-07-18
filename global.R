@@ -27,7 +27,6 @@ source('3-comparaison_periode.R')
 source('4-heure_engorg.R')
 source('5-seuil_engorg.R')
 source('6-comparaison.R')
-source('7_diagramme_fondamental.R')
 source('params.R')
 
 
