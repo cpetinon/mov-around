@@ -44,7 +44,7 @@ ui_5 <- function(id){
     p("Cet onglet permet de visualiser le pourcentage d’usagers (voitures et poids lourds) arrivant à dépasser 10km/h, 20km/h, 30km/h et 40km/h en fonction du nombre de véhicules sur la route. L’objectif est de pouvoir chercher un changement brusque dans ces courbes pour déterminer un seuil d’apparition des ralentissements. Le programme propose un seuil calculé automatiquement. Ce seuil n’est pas forcément précis, vous pouvez décider d’afficher un seuil manuel."),
     actionButton("toggleMethodButton_5", "Détails statistiques", style = "display: block; margin: 0 auto;"),
     div(id = "methodText_5", style = "display: none;",
-
+        
         h4("Méthode pour tracer les courbes :"),
         p("On commence par filtrer les données selon les sélections de l’utilisateur. On isole la partie correspondant au pourcentage de conducteur dépassant chaque vitesse. On range les données dans l’ordre croissant du nombre de véhicules (voitures + camions). On a pré-lissé les données à l’aide d’une moyenne glissante d’une amplitude de 50 pour dégager un début tendance (courbe noir du graphique). À partir de cette tendance, on a lissé nos données à l’aide de l’outil geom_smooth de ggplot2. Ces courbes de lissages sont les courbes colorées du graphique."),
         br(),
@@ -62,17 +62,24 @@ ui_5 <- function(id){
 
 server_5 <- function(input, output, session, data) {
   ns <- session$ns
-
+  
   observe({  # update sensor selection according to import tab
     if (!is.null(data$sensors)){
       names_selected_sensors <- setNames(data$sensors,sensor_names[sensor_ids%in%data$sensors])
       updateSelectInput(session, "sensor", choices = names_selected_sensors)
     }
   })
-
+  
   #--- function application ---
-  result <- reactive({
+  result <- reactive({tryCatch({
+   # print(paste("selected_sensor:", input$sensor))
+    #print(paste("state_data_range:", input$date_range))
+    #print(paste("data:", class(data$data$car_speed_hist_0to70plus)))
     plot_speed(data=data$data, sensor=input$sensor, date_range=input$date_range,direction=input$sens3)
+  }, error = function(e) {
+    print(paste("Erreur dans les entrées utilisateur 1:", e$message))
+    stop(e)
+  })
   })
   
   #--- output definition ---
@@ -102,15 +109,15 @@ server_5 <- function(input, output, session, data) {
       )
     }
   })
-
-
+  
+  
   output$downloadbrut <- downloadHandler(
     filename = "Courbes_brutes.csv",
     content = function(file) {
       write_excel_csv2(result()$data, file)
     }
   )
-
+  
   output$threshold <- renderUI({
     if (input$state_threshold == "manual") {
       sliderInput(ns("threshold"),
@@ -121,5 +128,5 @@ server_5 <- function(input, output, session, data) {
                   step = 1, round = FALSE)
     }
   })
-
+  
 }
