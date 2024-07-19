@@ -26,27 +26,27 @@ ui_2 <- function(id){
     # Sensors choices part
     ########
     h3("Choix des capteurs"),
-        p(class="text-center",
+    p(class="text-center",
       "Afin de pouvoir utiliser les outils d'analyse fournis par cette application, veuillez cocher les capteurs qui vous intéressent."),
     br(),
     fluidRow(
-          column(2),
-          column(4,
-                 br(),
-                 checkboxGroupInput(
-                   inputId=ns("Capteurs"),
-                   label="Liste des capteurs disponibles :",
-                   choiceNames = sensor_names,
-                   choiceValues = sensor_ids
-                 ),
-                 textOutput(ns("import_state"))),            
-          column(3, class = "text-center",
-                 h4('Carte des capteurs de Chateaubourg'),
-                 p("Un numéro correspond à un capteur."),
-                 tags$img(src="images/carte capteur apli.jpg",height=400),
-          column(3)
-                 
-          )
+      column(2),
+      column(4,
+             br(),
+             checkboxGroupInput(
+               inputId=ns("Capteurs"),
+               label="Liste des capteurs disponibles :",
+               choiceNames = sensor_names,
+               choiceValues = sensor_ids
+             ),
+             textOutput(ns("import_state"))),            
+      column(3, class = "text-center",
+             h4('Carte des capteurs de Chateaubourg'),
+             p("Un numéro correspond à un capteur."),
+             tags$img(src="images/carte capteur apli.jpg",height=400),
+             column(3)
+             
+      )
     ),
     
     br(),
@@ -81,7 +81,7 @@ ui_2 <- function(id){
     p(class = "text-center",
       "Pour plus d'informations, veuillez consulter",
       tags$a(href="https://telraam.net/#14/48.1014/-1.3862","le site Telraam"),"."),    
-            
+    
   )
 }
 
@@ -95,24 +95,40 @@ server_2 <- function(input, output, session){
   # Initialization of the reactive
   data <- reactiveValues(
     sensors = NULL,
-    data = tibble()
+    raw_data = tibble(),  # Données brutes complètes
+    data = tibble()       # Données filtrées (ou complètes selon le choix)
   )
   
-  
-  # Update of data reactive
   observe({
     if (is.null(input$Capteurs)){
       output$import_state <- renderText({"Pas de capteurs sélectionnés"})
-      
     } else {
-      # if truc pas NULL alors keep
+      # Importation et mise à jour des données brutes
       add <- setdiff(input$Capteurs, data$sensors) %>% import_sensor()
-      data$data <- data$data %>% rbind(add) %>% # add new sensors
-                                 filter((segment_id %in% input$Capteurs)) # remove sensors that are not selected anymore
-      output$import_state <- renderText(paste("Les capteurs importés sont: ", paste(sensor_names[sensor_ids%in%input$Capteurs],collapse=', ')))
+      #add$imputed = ifelse(add$uptime > 0.5, "original", "imputed")
+      data$raw_data <- data$raw_data %>% 
+        rbind(add) %>% 
+        filter(segment_id %in% input$Capteurs)
+      
+      # Initialisation de data$data avec toutes les données
+      data$data <- data$raw_data
+      
+      # Mise à jour des capteurs sélectionnés
       data$sensors <- input$Capteurs
+      output$import_state <- renderText(paste("Les capteurs importés sont: ", paste(sensor_names[sensor_ids %in% input$Capteurs], collapse=', ')))
     }
   })
+  
+  observe({
+    req(input$data_type, data$raw_data)  # S'assure que data_type est défini et que raw_data existe
+    
+    if(input$data_type == "original"){
+      data$data <- data$raw_data %>% filter(.data$imputed == "original")
+    } else {
+      data$data <- data$raw_data
+    }
+  })
+  
   
   
   
@@ -152,6 +168,13 @@ server_2 <- function(input, output, session){
                               min    = starting_date,
                               max    = ending_date - days(1))
         ),
+        column(3,
+               radioButtons(
+                 inputId = ns("data_type"),
+                 label = "Type de données",
+                 choices = c("Originales" = "original", "Imputées" = "imputed"),
+                 selected = "imputed"
+               )),
         column(3),
         plotOutput(ns('simple_plot')),
         br(),br(),br(),br(),
